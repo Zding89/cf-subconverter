@@ -73,4 +73,3 @@ trojan://password@example.com:443?security=tls&type=ws&path=/path&host=www.examp
 ## 免责声明
 
 本项目仅供学习交流使用，请遵守当地法律法规。
-](https://github.com/7Sageer/sublink-worker)
