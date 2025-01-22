@@ -8,9 +8,9 @@ let subupdatetime = 6;    //自定义订阅更新时间，单位小时
 // - 订阅地址: 订阅源地址
 // - 节点命名前缀: 可选,默认使用订阅组名称+'-'
 let subscriptions = `
-    demo,https://www.demo.com/api/subscribe/?uid=xxx,demo-     
-    [demo1],https://www.demo1.com/api/subscribe/?uid=xxx,abc-  
-    demo2,https://www.demo1.com/api/subscribe/?uid=xxx         
+    demo1,https://www.demo1.com/api/subscribe/?uid=xxx,demo-     
+    [demo2],https://www.demo2.com/api/subscribe/?uid=xxx,abc-  
+    demo3,https://www.demo3.com/api/subscribe/?uid=xxx         
 `;
 
 
