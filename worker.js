@@ -8,11 +8,18 @@ let subupdatetime = 6;    //自定义订阅更新时间，单位小时
 // - 订阅地址: 订阅源地址
 // - 节点命名前缀: 可选,默认使用订阅组名称+'-'
 let subscriptions = `
-    demo1,https://www.demo1.com/api/subscribe/?uid=xxx,demo-     
-    [demo2],https://www.demo2.com/api/subscribe/?uid=xxx,abc-  
-    demo3,https://www.demo3.com/api/subscribe/?uid=xxx         
+    demo,https://www.demo.com/api/subscribe/?uid=xxx,demo-     
+    [demo1],https://www.demo1.com/api/subscribe/?uid=xxx,abc-  
+    demo2,https://www.demo1.com/api/subscribe/?uid=xxx         
 `;
 
+// 自建节点配置
+let nodes = ``;
+//let nodes = `vless://uuid@example.com:443?encryption=none&security=reality&sni=www.microsoft.com&fp=chrome&pbk=uJtl2VlB0MLClBXB-jgVoGXyP_q5JKtbJxrV1E3zVWw&sid=6ba85179e30d4fc2&type=tcp&flow=xtls-rprx-vision#VLESS-REALITY-TCP
+//vless://uuid@example.com:443?encryption=none&security=reality&sni=www.microsoft.com&fp=chrome&pbk=uJtl2VlB0MLClBXB-jgVoGXyP_q5JKtbJxrV1E3zVWw&sid=6ba85179e30d4fc2&type=grpc&serviceName=grpcservice&flow=xtls-rprx-vision#VLESS-REALITY-gRPC
+//vless://uuid@example.com:443?encryption=none&security=tls&sni=www.example.com&type=ws&host=www.example.com&path=%2Fpath#VLESS-TLS-WS
+//vmess://eyJhZGQiOiJleGFtcGxlLmNvbSIsImFpZCI6IjAiLCJob3N0Ijoid3d3LmV4YW1wbGUuY29tIiwiaWQiOiJ1dWlkIiwibmV0Ijoid3MiLCJwYXRoIjoiL3BhdGgiLCJwb3J0IjoiNDQzIiwicHMiOiJWTWVzcy1UTFMtV1MiLCJzY3kiOiJhdXRvIiwic25pIjoid3d3LmV4YW1wbGUuY29tIiwidGxzIjoidGxzIiwidHlwZSI6IiIsInYiOiIyIn0=
+//`;
 
 export default {
 	async fetch(request, env) {
@@ -21,6 +28,7 @@ export default {
 		let subs = parseSubscriptions(subscriptions);
 		subname = env.subname || subname;
 		subupdatetime = env.subupdatetime || subupdatetime;
+		nodes = env.nodes || nodes;
 
 		const url = new URL(request.url);
 		const pathParts = url.pathname.split('/');
@@ -168,12 +176,32 @@ export default {
 			};
 		}
 
+		const hasCustomNodes = nodes.trim() && processNodes(nodes).length > 0;
+		let customProxies = [];
+		let selfHostedGroup = null;
+		
+		// 2. 如果有自建节点，处理相关配置
+		if (hasCustomNodes) {
+			customProxies = processNodes(nodes);
+			config.proxies.push(...customProxies);
+			
+			selfHostedGroup = {
+				name: "🏠 自建节点",
+				type: "url-test",
+				proxies: customProxies.map(proxy => proxy.name),
+				url: "http://www.gstatic.com/generate_204",
+				interval: 300,
+				tolerance: 50
+			};
+		}
+		
+
 		config['proxy-groups'] = [{
-				name: "🚀 默认",
-				type: "select",
-				proxies: ["⚡️ 自动选择", "📍 全部节点", ...Object.keys(subs)
-					.map(name => `📑 ${name}`), "➡️ 直连", "🇭🇰 香港", "🇨🇳 台湾", "🇯🇵 日本", "🇸🇬 新加坡", "🇺🇸 美国", "🌐 其它地区"
-				]
+			name: "🚀 默认",
+			type: "select",
+			proxies: ["⚡️ 自动选择", "📍 全部节点", ...(hasCustomNodes ? ["🏠 自建节点"] : []), ...Object.keys(subs)
+			.map(name => `📑 ${name}`), "➡️ 直连", "🇭🇰 香港", "🇨🇳 台湾", "🇯🇵 日本", "🇸🇬 新加坡", "🇺🇸 美国", "🌐 其它地区"
+				]	
 			},
 			{
 				name: "📍 全部节点",
@@ -190,6 +218,10 @@ export default {
 				interval: 1200
 			}
 		];
+
+		if (selfHostedGroup) {
+			config['proxy-groups'].push(selfHostedGroup);
+}
 
 		// 为每个订阅源添加专属分组
 		Object.keys(subs).forEach(name => {
@@ -471,4 +503,165 @@ function generateUUID() {
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
+}
+
+function processNodes(nodesText) {
+    if (!nodesText || !nodesText.trim()) {
+        return [];
+    }
+    
+    const nodeUrls = nodesText.split('\n')
+        .filter(line => line.trim())
+        .filter(line => line.startsWith('vless://') || 
+                       line.startsWith('vmess://') || 
+                       line.startsWith('trojan://') ||
+                       line.startsWith('ss://') ||
+                       line.startsWith('hysteria2://') ||
+                       line.startsWith('tuic://'));
+
+    return nodeUrls
+        .map(url => {
+            try {
+                return convertNodeToClashFormat(url);
+            } catch (error) {
+                console.error(`Failed to convert node: ${error.message}`);
+                return null;
+            }
+        })
+        .filter(node => node !== null);
+}
+function convertNodeToClashFormat(nodeUrl) {
+    try {
+        const url = new URL(nodeUrl);
+        const protocol = url.protocol.replace(':', '');
+        const hash = decodeURIComponent(url.hash.replace('#', ''));
+        const params = Object.fromEntries(url.searchParams.entries());
+        
+        // 基本配置
+        const baseConfig = {
+            name: hash || `自建-${generateUUID().substring(0, 4)}`,
+            server: url.hostname,
+            port: Number.isNaN(parseInt(url.port)) ? 443 : parseInt(url.port),
+        };
+
+        switch(protocol) {
+			case 'vless':
+				let flow = params.flow;
+				if (flow === 'xtls-rprx-direct') {
+					flow = undefined;
+				}
+				
+				return {
+					...baseConfig,
+					type: 'vless',
+					uuid: url.username,
+					cipher: params.encryption || 'none',
+					tls: params.security === 'tls' || params.security === 'reality',
+					'client-fingerprint': params.fp || 'chrome',
+					servername: params.sni || '',
+					network: params.type || 'tcp',
+					'ws-opts': params.type === 'ws' ? {
+						path: params.path || '/',
+						headers: {
+							Host: params.host || url.hostname
+						}
+					} : undefined,
+					'reality-opts': params.security === 'reality' ? {
+						'public-key': params.pbk,
+						'short-id': params.sid,
+					} : undefined,
+					'grpc-opts': params.type === 'grpc' ? {
+						'grpc-mode': 'gun',
+						'grpc-service-name': params.serviceName,
+					} : undefined,
+					flow: flow,
+					'skip-cert-verify': false,
+				};
+
+            case 'trojan':
+                return {
+                    ...baseConfig,
+                    type: 'trojan',
+                    password: url.username,
+                    tls: true,
+                    'client-fingerprint': params.fp || 'chrome',
+                    sni: params.sni || '',
+                    network: params.type || 'tcp',
+                    'ws-opts': params.type === 'ws' ? {
+                        path: params.path || '/',
+                        headers: {
+                            Host: params.host || url.hostname
+                        }
+                    } : undefined,
+                    'reality-opts': params.security === 'reality' ? {
+                        'public-key': params.pbk,
+                        'short-id': params.sid,
+                    } : undefined,
+                    'skip-cert-verify': false,
+                };
+
+			case 'vmess':
+				return {
+					...baseConfig,
+					type: 'vmess',
+					port: parseInt(url.port || params.port || '443'), // 添加port解析
+					uuid: url.username,
+					alterId: parseInt(params.aid || '0'),
+					cipher: params.encryption || 'auto',
+					tls: params.security === 'tls',
+					servername: params.sni || '',
+					network: params.type || 'tcp',
+					'ws-opts': params.type === 'ws' ? {
+						path: params.path || '/',
+						headers: {
+							Host: params.host || url.hostname
+						}
+					} : undefined,
+					'skip-cert-verify': false,
+				};
+
+            case 'ss':
+            case 'shadowsocks':
+                const [method, password] = atob(url.username).split(':');
+                return {
+                    ...baseConfig,
+                    type: 'ss',
+                    cipher: method,
+                    password: password,
+                };
+
+			case 'hysteria2':
+				return {
+					...baseConfig,
+					type: 'hysteria2',
+					password: url.username,
+					...(params.obfs ? {
+						obfs: params.obfs,
+						'obfs-password': params['obfs-password'] || ''
+					} : {}),
+					sni: params.sni || '',
+					'skip-cert-verify': params.insecure === '1',
+				};
+
+            case 'tuic':
+                return {
+                    ...baseConfig,
+                    type: 'tuic',
+                    uuid: params.uuid,
+                    password: params.password,
+                    'congestion-controller': params.congestion || 'bbr',
+                    'skip-cert-verify': false,
+                    'disable-sni': true,
+                    'alpn': (params.alpn || '').split(','),
+                    'sni': params.sni || '',
+                    'udp-relay-mode': 'native',
+                };
+
+            default:
+                throw new Error(`Unsupported protocol: ${protocol}`);
+        }
+    } catch (error) {
+        console.error(`Error converting node: ${error.message}`);
+        return null;
+    }
 }
