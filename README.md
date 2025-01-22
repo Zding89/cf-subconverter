@@ -14,15 +14,15 @@
 1. 复制[worker代码](https://raw.githubusercontent.com/Zding89/cf-subconverter/refs/heads/main/worker.js)
 2. 在 Cloudflare Workers 创建新的 Worker
 3. 复制代码到 Worker
-4. 绑定自定义域名，然后打开https://www.自定义域名.com/uuid ，复制生成随机uuid
-5. 配置环境变量(可选)
+4. 绑定自定义域名，然后打开https://www.自定义域名.com/uuid ，复制生成随机uuid到变量token里面（可选，但建议，否则小心被扫）
+5. 配置环境变量
 
 ## 配置说明
 
 ### worker环境变量
 | 变量名 | 示例 | 必填 | 备注 | 
 |-|-|-|-|
-| token | `token` | ✅ | 访问订阅的密钥，访问格式：`https://www.自定义域名.com/token` | 
+| token | `token` | ✅ | 访问订阅的uuid，访问格式：`https://www.自定义域名.com/token` | 
 | subname | `科学订阅` | ❌ | 生成的订阅文件名称 | 
 | subupdatetime | `6` | ❌ | 订阅更新时间间隔，单位：小时 |
 | subscriptions | `格式见下方说明` | ✅ | 订阅源配置，支持多个订阅源,一行一个订阅源，英文逗号隔开
