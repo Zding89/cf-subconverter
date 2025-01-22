@@ -26,6 +26,7 @@
 | subname | `科学订阅` | ❌ | 生成的订阅文件名称 | 
 | subupdatetime | `6` | ❌ | 订阅更新时间间隔，单位：小时 |
 | subscriptions | `格式见下方说明` | ✅ | 订阅源配置，支持多个订阅源,一行一个订阅源，英文逗号隔开
+| nodes | `格式见下方说明` | ✅ | 单个节点配置，支持多个节点,一行一个节点，英文逗号隔开
 ### subscriptions 配置格式说明:
 ```
 格式: 订阅组名称,订阅地址,节点命名前缀
@@ -34,7 +35,19 @@ demo1,https://www.demo1.com/api/subscribe/?uid=xxx,demo-
 [demo2],https://www.demo2.com/api/subscribe/?uid=xxx,abc-
 demo3,https://www.demo3.com/api/subscribe/?uid=xxx
 ```
-|
+### subscriptions 配置格式说明:
+```
+格式: 一行一个节点
+vless://uuid@example.com:443?encryption=none&security=reality&sni=www.microsoft.com&fp=chrome&pbk=uJtl2VlB0MLClBXB-jgVoGXyP_q5JKtbJxrV1E3zVWw&sid=6ba85179e30d4fc2&type=tcp&flow=xtls-rprx-vision#VLESS-REALITY-TCP
+vless://uuid@example.com:443?encryption=none&security=reality&sni=www.microsoft.com&fp=chrome&pbk=uJtl2VlB0MLClBXB-jgVoGXyP_q5JKtbJxrV1E3zVWw&sid=6ba85179e30d4fc2&type=grpc&serviceName=grpcservice&flow=xtls-rprx-vision#VLESS-REALITY-gRPC
+vless://uuid@example.com:443?encryption=none&security=tls&sni=www.example.com&type=ws&host=www.example.com&path=%2Fpath#VLESS-TLS-WS
+vmess://eyJhZGQiOiJleGFtcGxlLmNvbSIsImFpZCI6IjAiLCJob3N0Ijoid3d3LmV4YW1wbGUuY29tIiwiaWQiOiJ1dWlkIiwibmV0Ijoid3MiLCJwYXRoIjoiL3BhdGgiLCJwb3J0IjoiNDQzIiwicHMiOiJWTWVzcy1UTFMtV1MiLCJzY3kiOiJhdXRvIiwic25pIjoid3d3LmV4YW1wbGUuY29tIiwidGxzIjoidGxzIiwidHlwZSI6IiIsInYiOiIyIn0=
+trojan://password@example.com:443?security=tls&type=tcp&sni=www.example.com#Trojan-TLS
+ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ@example.com:443#Shadowsocks
+vless://uuid@example.com:443?security=tls&encryption=none&headerType=none&type=tcp&flow=xtls-rprx-direct&sni=www.example.com#VLESS-XTLS
+vmess://eyJhZGQiOiJleGFtcGxlLmNvbSIsImFpZCI6IjAiLCJpZCI6InV1aWQiLCJuZXQiOiJncnBjIiwicGF0aCI6ImdycGNzZXJ2aWNlIiwicG9ydCI6IjQ0MyIsInBzIjoiVk1lc3MtVExTLWdSUEMiLCJzY3kiOiJhdXRvIiwic25pIjoid3d3LmV4YW1wbGUuY29tIiwidGxzIjoidGxzIiwidHlwZSI6Imd1biIsInYiOiIyIn0=
+trojan://password@example.com:443?security=tls&type=ws&path=/path&host=www.example.com&sni=www.example.com#Trojan-TLS-WS
+```
 ## 使用方法
 
 工具获取订阅地址：`https://www.自定义域名.com/token`
