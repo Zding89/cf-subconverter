@@ -1,4 +1,4 @@
-[# cf-subconverter
+# cf-subconverter
 
 
 一个基于 Cloudflare Worker 的clash订阅转换工具，支持多订阅源整合。
