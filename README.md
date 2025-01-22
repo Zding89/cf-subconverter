@@ -1,4 +1,4 @@
-# cf-subconverter
+[# cf-subconverter
 
 
 一个基于 Cloudflare Worker 的clash订阅转换工具，支持多订阅源整合。
@@ -48,6 +48,16 @@ demo3,https://www.demo3.com/api/subscribe/?uid=xxx
 
 1. ***请修改默认访问token ***
 
+## 致谢
+
+本项目参考了以下开源项目:
+
+- [sublink-worker](https://github.com/7Sageer/sublink-worker)
+- [CF-Workers-SUB](https://github.com/cmliu/CF-Workers-SUB)
+
+感谢以上项目作者的开源贡献！
+
 ## 免责声明
 
 本项目仅供学习交流使用，请遵守当地法律法规。
+](https://github.com/7Sageer/sublink-worker)
