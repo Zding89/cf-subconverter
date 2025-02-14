@@ -179,6 +179,7 @@ export default {
 		const hasCustomNodes = nodes.trim() && processNodes(nodes).length > 0;
 		let customProxies = [];
 		let selfHostedGroup = null;
+		let selfHostedTestGroup = null;
 		
 		// 2. 如果有自建节点，处理相关配置
 		if (hasCustomNodes) {
@@ -187,6 +188,11 @@ export default {
 			
 			selfHostedGroup = {
 				name: "🏠 自建节点",
+				type: "select",
+				proxies: customProxies.map(proxy => proxy.name),
+			};
+			selfHostedTestGroup = {
+				name: "🏠 自建节点(测速)",
 				type: "url-test",
 				proxies: customProxies.map(proxy => proxy.name),
 				url: "http://www.gstatic.com/generate_204",
@@ -199,7 +205,7 @@ export default {
 		config['proxy-groups'] = [{
 			name: "🚀 默认",
 			type: "select",
-			proxies: ["⚡️ 自动选择", "📍 全部节点", ...(hasCustomNodes ? ["🏠 自建节点"] : []), ...Object.keys(subs)
+			proxies: ["⚡️ 自动选择", "📍 全部节点", ...(hasCustomNodes ? ["🏠 自建节点"] : []), ...(hasCustomNodes ? ["🏠 自建节点(测速)"] : []), ...Object.keys(subs)
 			.map(name => `📑 ${name}`), "➡️ 直连", "🇭🇰 香港", "🇨🇳 台湾", "🇯🇵 日本", "🇸🇬 新加坡", "🇺🇸 美国", "🌐 其它地区"
 				]	
 			},
@@ -221,6 +227,7 @@ export default {
 
 		if (selfHostedGroup) {
 			config['proxy-groups'].push(selfHostedGroup);
+			config['proxy-groups'].push(selfHostedTestGroup);
 }
 
 		// 为每个订阅源添加专属分组
@@ -244,7 +251,7 @@ export default {
 			proxies: ["❌ 拒绝", "➡️ 直连", "🚀 默认"]
 		}, {
 			name: "🇭🇰 香港",
-			type: "url-test",
+			type: "select",
 			"include-all": true,
 			"exclude-type": "direct|reject",
 			filter: "(?i)港|hk|hongkong|hong kong"
